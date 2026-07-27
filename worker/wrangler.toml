@@ -1,4 +1,4 @@
-name = "process-mining-worker"
+name = "process-mining"
 main = "src/index.js"
 compatibility_date = "2024-09-01"
 
