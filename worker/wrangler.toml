@@ -2,14 +2,16 @@ name = "process-mining-worker"
 main = "src/index.js"
 compatibility_date = "2024-09-01"
 
-[env.preview]
-name = "process-mining-worker-preview"
-
 [placement]
 mode = "smart"
 
-[env.production.vars]
-LOGS_BUCKET = "logs"
+[[r2_buckets]]
+binding = "LOGS_BUCKET"
+bucket_name = "logs"
 
-[env.preview.vars]
-LOGS_BUCKET = "logs-preview"
+[env.preview]
+name = "process-mining-worker-preview"
+
+[[env.preview.r2_buckets]]
+binding = "LOGS_BUCKET"
+bucket_name = "logs-preview"
