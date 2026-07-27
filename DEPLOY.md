@@ -1,10 +1,22 @@
 # Deploy seguro para Cloudflare
 
+## Worker em produção
+- URL: https://process-mining.liseu.workers.dev
+- Configure essa URL no popup/opções da extensão (campo "apiUrl") para que os eventos sejam enviados para o worker correto.
+
+## Fluxo atual de deploy
+O deploy do worker é feito pela integração Git nativa do Cloudflare (Workers & Pages → Configurações → Build), não pelo workflow `.github/workflows/deploy.yml`:
+- Repositório: `euvaldoferreira/Process-Mining`
+- Diretório raiz do build: `worker`
+- Comando de implantação: `npx wrangler deploy`
+- Ramificação de produção: a branch configurada em "Controle da ramificação" no painel
+
+Os workflows em `.github/workflows/` (`deploy.yml`, `deploy-preview.yml`) ficam disponíveis como alternativa via GitHub Actions, mas não estão ativos no momento — evite disparar os dois fluxos ao mesmo tempo para não gerar deploys duplicados/conflitantes.
+
 ## Fluxo recomendado
 1. Trabalhe em branches de desenvolvimento, como `develop`.
 2. Valide com `npm test`.
-3. Faça merge para `main` somente quando a versão estiver pronta.
-4. O workflow em `.github/workflows/deploy.yml` publica o worker somente após a validação.
+3. Faça merge para a branch de produção configurada no painel somente quando a versão estiver pronta.
 
 ## Variáveis de ambiente necessárias
 No GitHub Actions, configure:
