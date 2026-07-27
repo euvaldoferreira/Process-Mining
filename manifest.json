@@ -1,0 +1,31 @@
+{
+  "manifest_version": 3,
+  "name": "Process Mining Collector",
+  "version": "0.1.0",
+  "description": "Coleta eventos de interação do navegador para análise de processo, sem capturar logins ou senhas.",
+  "permissions": ["storage", "tabs"],
+  "host_permissions": ["http://*/*", "https://*/*"],
+  "background": {
+    "service_worker": "extension/background.js"
+  },
+  "content_scripts": [
+    {
+      "matches": ["http://*/*", "https://*/*"],
+      "js": ["extension/utils/privacy.js", "extension/content.js"],
+      "run_at": "document_idle"
+    }
+  ],
+  "action": {
+    "default_title": "Process Mining",
+    "default_popup": "extension/popup.html"
+  },
+  "options_ui": {
+    "page": "extension/options.html",
+    "open_in_tab": true
+  },
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "process-mining-collector@example.com"
+    }
+  }
+}

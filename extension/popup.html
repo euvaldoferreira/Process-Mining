@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="utf-8" />
+    <title>Process Mining</title>
+    <style>
+      body { font-family: Arial, sans-serif; margin: 12px; width: 320px; }
+      label { display: block; margin-top: 8px; font-weight: 600; }
+      input, textarea { width: 100%; box-sizing: border-box; margin-top: 4px; }
+      button { margin-top: 12px; width: 100%; padding: 8px; }
+      .row { margin-top: 8px; }
+    </style>
+  </head>
+  <body>
+    <h3>Configuração</h3>
+    <label>URL da API</label>
+    <input id="apiUrl" placeholder="https://seu-worker.cloudflare.com" />
+    <label>Sites permitidos (um por linha)</label>
+    <textarea id="enabledSites" rows="6" placeholder="https://sei.example.com"></textarea>
+    <div class="row">
+      <label><input id="isEnabled" type="checkbox" checked /> Ativar observação</label>
+    </div>
+    <button id="save">Salvar</button>
+    <script src="popup.js"></script>
+  </body>
+</html>
