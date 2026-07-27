@@ -13,6 +13,16 @@ O deploy do worker é feito pela integração Git nativa do Cloudflare (Workers 
 
 Os workflows em `.github/workflows/` (`deploy.yml`, `deploy-preview.yml`) ficam disponíveis como alternativa via GitHub Actions, mas não estão ativos no momento — evite disparar os dois fluxos ao mesmo tempo para não gerar deploys duplicados/conflitantes.
 
+## Proteção contra abuso do endpoint público
+O worker valida o schema dos eventos, limita o tamanho do lote/payload e aplica rate limiting por IP (60 req/60s, ver `[[ratelimits]]` em `worker/wrangler.toml`). Opcionalmente, defina uma chave de API para exigir que só a extensão configurada consiga enviar dados:
+
+```bash
+cd worker
+npx wrangler secret put API_KEY
+```
+
+Depois, cole o mesmo valor no campo "Chave de API" do popup da extensão. Se o secret `API_KEY` não for definido, essa checagem fica desativada (mas a validação de schema e o rate limit continuam ativos).
+
 ## Fluxo recomendado
 1. Trabalhe em branches de desenvolvimento, como `develop`.
 2. Valide com `npm test`.
