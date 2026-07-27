@@ -14,7 +14,9 @@ O deploy do worker é feito pela integração Git nativa do Cloudflare (Workers 
 Os workflows em `.github/workflows/` (`deploy.yml`, `deploy-preview.yml`) ficam disponíveis como alternativa via GitHub Actions, mas não estão ativos no momento — evite disparar os dois fluxos ao mesmo tempo para não gerar deploys duplicados/conflitantes.
 
 ## Proteção contra abuso do endpoint público
-O worker valida o schema dos eventos, limita o tamanho do lote/payload e aplica rate limiting por IP (60 req/60s, ver `[[ratelimits]]` em `worker/wrangler.toml`). Opcionalmente, defina uma chave de API para exigir que só a extensão configurada consiga enviar dados:
+O worker valida o schema dos eventos e limita o tamanho do lote/payload. Também aplica rate limiting (60 req/60s, ver `[[ratelimits]]` em `worker/wrangler.toml`), usando como chave o `X-Client-Id` enviado pela extensão (um UUID gerado uma vez por instalação e guardado em `chrome.storage.local`) — isso garante que instalações diferentes atrás do mesmo IP/rede (ex.: proxy corporativo) não disputem a mesma cota. Se o header não vier ou não for um UUID válido, o worker cai de volta para o IP. Cada evento salvo no R2 também guarda esse `clientId`, útil para diferenciar instalações na análise dos dados.
+
+Opcionalmente, defina uma chave de API para exigir que só a extensão configurada consiga enviar dados:
 
 ```bash
 cd worker

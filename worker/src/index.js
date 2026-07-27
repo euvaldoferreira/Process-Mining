@@ -3,6 +3,7 @@ const MAX_BODY_BYTES = 100_000;
 const MAX_STRING_LENGTH = 500;
 const MAX_URL_LENGTH = 2000;
 const ALLOWED_TYPES = new Set(['input', 'click', 'error', 'visibility']);
+const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 function jsonResponse(body, status, corsHeaders) {
   return new Response(JSON.stringify(body), {
@@ -68,7 +69,7 @@ export default {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'content-type, x-api-key'
+      'Access-Control-Allow-Headers': 'content-type, x-api-key, x-client-id'
     };
 
     if (request.method === 'OPTIONS') {
@@ -80,9 +81,12 @@ export default {
     }
 
     const clientIp = request.headers.get('cf-connecting-ip') || 'unknown';
+    const rawClientId = request.headers.get('x-client-id') || '';
+    const clientId = UUID_PATTERN.test(rawClientId) ? rawClientId : null;
+    const rateLimitKey = clientId || clientIp;
 
     if (env.RATE_LIMITER) {
-      const { success } = await env.RATE_LIMITER.limit({ key: clientIp });
+      const { success } = await env.RATE_LIMITER.limit({ key: rateLimitKey });
       if (!success) {
         return jsonResponse({ ok: false, error: 'rate_limited' }, 429, corsHeaders);
       }
@@ -118,7 +122,8 @@ export default {
       sanitized.push({
         ...validated,
         receivedAt: new Date().toISOString(),
-        sourceIp: clientIp
+        sourceIp: clientIp,
+        clientId
       });
     }
 

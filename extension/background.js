@@ -10,6 +10,19 @@ let apiKey = DEFAULT_API_KEY;
 let enabledSites = DEFAULT_ENABLED_SITES;
 let isEnabled = true;
 let flushTimer = null;
+let clientId = '';
+
+async function ensureClientId() {
+  if (clientId) return clientId;
+  const stored = await chrome.storage.local.get(['clientId']);
+  if (stored.clientId) {
+    clientId = stored.clientId;
+  } else {
+    clientId = crypto.randomUUID();
+    await chrome.storage.local.set({ clientId });
+  }
+  return clientId;
+}
 
 function normalizeUrl(url) {
   if (!url) return '';
@@ -33,6 +46,7 @@ async function loadConfig() {
   apiKey = result.apiKey || DEFAULT_API_KEY;
   enabledSites = result.enabledSites || DEFAULT_ENABLED_SITES;
   isEnabled = result.isEnabled !== false;
+  await ensureClientId();
 }
 
 async function persistConfig() {
@@ -54,6 +68,7 @@ async function flushQueue() {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
+        'X-Client-Id': clientId,
         ...(apiKey ? { 'X-API-Key': apiKey } : {})
       },
       body: JSON.stringify(batch)
