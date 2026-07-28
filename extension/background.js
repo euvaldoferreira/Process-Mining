@@ -34,15 +34,33 @@ function normalizeUrl(url) {
   }
 }
 
+function normalizePattern(pattern) {
+  if (!pattern) return '';
+  const trimmed = pattern.trim();
+  if (!trimmed) return '';
+  const withScheme = /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+  return normalizeUrl(withScheme) || trimmed.replace(/\/+$/, '');
+}
+
+function normalizeApiUrl(url) {
+  if (!url) return '';
+  const trimmed = url.trim();
+  if (!trimmed) return '';
+  return /^https?:\/\//i.test(trimmed) ? trimmed : `https://${trimmed}`;
+}
+
 function isSiteAllowed(url) {
   const origin = normalizeUrl(url);
   if (!origin) return false;
-  return enabledSites.some((pattern) => origin === pattern || origin.startsWith(pattern));
+  return enabledSites.some((pattern) => {
+    const normalizedPattern = normalizePattern(pattern);
+    return !!normalizedPattern && (origin === normalizedPattern || origin.startsWith(normalizedPattern));
+  });
 }
 
 async function loadConfig() {
   const result = await chrome.storage.local.get(['apiUrl', 'apiKey', 'enabledSites', 'isEnabled']);
-  apiUrl = result.apiUrl || DEFAULT_API_URL;
+  apiUrl = normalizeApiUrl(result.apiUrl) || DEFAULT_API_URL;
   apiKey = result.apiKey || DEFAULT_API_KEY;
   enabledSites = result.enabledSites || DEFAULT_ENABLED_SITES;
   isEnabled = result.isEnabled !== false;
@@ -66,6 +84,7 @@ async function flushQueue() {
   try {
     const response = await fetch(apiUrl, {
       method: 'POST',
+      keepalive: true,
       headers: {
         'Content-Type': 'application/json',
         'X-Client-Id': clientId,
@@ -98,7 +117,7 @@ chrome.runtime.onInstalled.addListener(() => {
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
   if (message?.type === 'config:save') {
-    apiUrl = message.apiUrl || DEFAULT_API_URL;
+    apiUrl = normalizeApiUrl(message.apiUrl) || DEFAULT_API_URL;
     apiKey = message.apiKey || DEFAULT_API_KEY;
     enabledSites = message.enabledSites || DEFAULT_ENABLED_SITES;
     isEnabled = message.isEnabled !== false;
@@ -114,7 +133,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
 
   if (message?.type === 'event') {
     const event = message.payload;
-    if (event?.url && isSiteAllowed(event.url) && isEnabled) {
+    const allowed = !!event?.url && isSiteAllowed(event.url) && isEnabled;
+    if (allowed) {
       enqueue(event);
       scheduleFlush();
     }
