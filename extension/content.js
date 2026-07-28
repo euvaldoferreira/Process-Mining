@@ -1,6 +1,5 @@
 (function () {
   const privacy = window.ProcessMiningUtils;
-  const captureAttributes = ['id', 'name', 'className', 'placeholder', 'aria-label', 'role'];
 
   function getContextFromElement(target) {
     const fieldName = target.getAttribute('name') || target.getAttribute('id') || '';
@@ -86,7 +85,9 @@
   }
 
   function sendEvent(event) {
-    chrome.runtime.sendMessage({ type: 'event', payload: event });
+    Promise.resolve(chrome.runtime.sendMessage({ type: 'event', payload: event })).catch(function (error) {
+      console.error('[Process Mining] Falha ao enviar mensagem para o background:', error);
+    });
   }
 
   document.addEventListener('input', function (event) {

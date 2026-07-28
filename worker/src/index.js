@@ -93,6 +93,15 @@ async function handleReleaseFile(env, filename, corsHeaders) {
   });
 }
 
+async function handleDebugList(env, corsHeaders) {
+  const listed = await env.LOGS_BUCKET.list({ limit: 20 });
+  const objects = listed.objects
+    .slice()
+    .sort((a, b) => b.key.localeCompare(a.key))
+    .map((object) => ({ key: object.key, size: object.size, uploaded: object.uploaded }));
+  return jsonResponse({ ok: true, count: objects.length, objects }, 200, corsHeaders);
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = {
@@ -113,6 +122,13 @@ export default {
 
     if (request.method === 'GET' && url.pathname.startsWith('/releases/')) {
       return handleReleaseFile(env, url.pathname.slice('/releases/'.length), corsHeaders);
+    }
+
+    if (request.method === 'GET' && url.pathname === '/debug/logs') {
+      if (!env.API_KEY || request.headers.get('x-api-key') !== env.API_KEY) {
+        return new Response('Not found', { status: 404, headers: corsHeaders });
+      }
+      return handleDebugList(env, corsHeaders);
     }
 
     if (request.method !== 'POST') {
