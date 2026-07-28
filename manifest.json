@@ -27,6 +27,7 @@
   "browser_specific_settings": {
     "gecko": {
       "id": "process-mining-collector@example.com",
+      "update_url": "https://process-mining.liseu.workers.dev/updates.json",
       "data_collection_permissions": {
         "required": ["browsingActivity", "websiteActivity", "technicalAndInteraction"]
       }
