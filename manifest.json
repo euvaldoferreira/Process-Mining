@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Process Mining Collector",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Coleta eventos de interação do navegador para análise de processo, sem capturar logins ou senhas.",
   "permissions": ["storage"],
   "host_permissions": ["http://*/*", "https://*/*"],
