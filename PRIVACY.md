@@ -14,7 +14,7 @@ Esta extensão coleta eventos de interação do navegador para análise de proce
 ## Medidas de segurança
 - Sanitização e truncamento de valores.
 - Envios em lote com flush assíncrono para evitar impacto na navegação.
-- API aberta sem autenticação, mas com responsabilidade do deployer em controlar acesso e retenção de dados.
+- O serviço de coleta valida o formato dos dados recebidos, limita volume por origem (rate limiting) e pode exigir uma chave de acesso, para reduzir o risco de uso indevido do endpoint.
 
 ## Controle do usuário
 - O usuário escolhe quais sites observados.
