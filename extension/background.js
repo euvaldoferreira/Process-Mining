@@ -64,7 +64,7 @@ async function flushQueue() {
   if (!queue.length || !apiUrl || !isEnabled) return;
   const batch = queue.splice(0, queue.length);
   try {
-    await fetch(apiUrl, {
+    const response = await fetch(apiUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -73,7 +73,13 @@ async function flushQueue() {
       },
       body: JSON.stringify(batch)
     });
+    if (!response.ok) {
+      const body = await response.text().catch(() => '');
+      console.error('[Process Mining] Falha ao enviar eventos:', response.status, body);
+      queue.unshift(...batch);
+    }
   } catch (error) {
+    console.error('[Process Mining] Erro de rede ao enviar eventos:', error);
     queue.unshift(...batch);
   }
 }
