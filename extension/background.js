@@ -2,7 +2,8 @@ const DEFAULT_API_URL = '';
 const DEFAULT_API_KEY = '';
 const DEFAULT_ENABLED_SITES = [];
 const BATCH_SIZE = 20;
-const FLUSH_INTERVAL_MS = 3000;
+const FLUSH_INTERVAL_MS = 30000;
+const FLUSH_JITTER_MS = 15000;
 
 let queue = [];
 let apiUrl = DEFAULT_API_URL;
@@ -105,10 +106,11 @@ async function flushQueue() {
 
 function scheduleFlush() {
   if (flushTimer) return;
+  const delay = FLUSH_INTERVAL_MS + Math.floor(Math.random() * FLUSH_JITTER_MS);
   flushTimer = setTimeout(() => {
     flushTimer = null;
     void flushQueue();
-  }, FLUSH_INTERVAL_MS);
+  }, delay);
 }
 
 chrome.runtime.onInstalled.addListener(() => {
@@ -136,7 +138,15 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     const allowed = !!event?.url && isSiteAllowed(event.url) && isEnabled;
     if (allowed) {
       enqueue(event);
-      scheduleFlush();
+      if (event.type === 'visibility' && event.visible === false) {
+        if (flushTimer) {
+          clearTimeout(flushTimer);
+          flushTimer = null;
+        }
+        void flushQueue();
+      } else {
+        scheduleFlush();
+      }
     }
     sendResponse({ ok: true });
     return true;
