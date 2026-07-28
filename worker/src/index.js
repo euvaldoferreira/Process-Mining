@@ -22,7 +22,8 @@ function sanitizeContext(context) {
     fieldName: truncate(context.fieldName ?? '', MAX_STRING_LENGTH),
     fieldId: truncate(context.fieldId ?? '', MAX_STRING_LENGTH),
     placeholder: truncate(context.placeholder ?? '', MAX_STRING_LENGTH),
-    inputType: truncate(context.inputType ?? '', MAX_STRING_LENGTH)
+    inputType: truncate(context.inputType ?? '', MAX_STRING_LENGTH),
+    href: truncate(context.href ?? '', MAX_URL_LENGTH)
   };
 }
 
@@ -33,7 +34,8 @@ function validateEvent(event) {
 
   const base = {
     type: event.type,
-    url: truncate(event.url, MAX_URL_LENGTH)
+    url: truncate(event.url, MAX_URL_LENGTH),
+    inFrame: event.inFrame === true
   };
 
   switch (event.type) {
@@ -44,6 +46,7 @@ function validateEvent(event) {
         ...base,
         tag: truncate(event.tag, 50),
         context: sanitizeContext(event.context),
+        selector: truncate(event.selector ?? '', MAX_STRING_LENGTH),
         ...(event.type === 'input'
           ? { value: truncate(event.value, MAX_STRING_LENGTH) }
           : { text: truncate(event.text, MAX_STRING_LENGTH) })

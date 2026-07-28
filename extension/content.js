@@ -7,7 +7,42 @@
     const fieldId = target.getAttribute('id') || '';
     const placeholder = target.getAttribute('placeholder') || '';
     const inputType = target.type || 'text';
-    return { fieldName, fieldId, placeholder, inputType };
+    const link = target.closest ? target.closest('a[href]') : null;
+    const href = link ? link.getAttribute('href') : '';
+    return { fieldName, fieldId, placeholder, inputType, href };
+  }
+
+  function buildSelector(target) {
+    if (!(target instanceof Element)) return '';
+    const parts = [];
+    let node = target;
+    while (node && node.nodeType === 1 && parts.length < 8) {
+      let part = node.tagName.toLowerCase();
+      if (node.id) {
+        parts.unshift(part + '#' + node.id);
+        break;
+      }
+      const parent = node.parentElement;
+      if (parent) {
+        const siblings = Array.prototype.filter.call(parent.children, function (child) {
+          return child.tagName === node.tagName;
+        });
+        if (siblings.length > 1) {
+          part += ':nth-of-type(' + (siblings.indexOf(node) + 1) + ')';
+        }
+      }
+      parts.unshift(part);
+      node = parent;
+    }
+    return parts.join(' > ');
+  }
+
+  function isInFrame() {
+    try {
+      return window !== window.top;
+    } catch (error) {
+      return true;
+    }
   }
 
   function captureInput(target) {
@@ -21,7 +56,9 @@
       url: window.location.href,
       tag: target.tagName,
       context,
-      value
+      value,
+      selector: buildSelector(target),
+      inFrame: isInFrame()
     };
   }
 
@@ -32,7 +69,9 @@
       url: window.location.href,
       tag: target.tagName,
       text: (target.innerText || '').slice(0, 200),
-      context
+      context,
+      selector: buildSelector(target),
+      inFrame: isInFrame()
     };
   }
 
@@ -41,7 +80,8 @@
       type: 'error',
       url: window.location.href,
       message: privacy.sanitizeValue(error && error.message ? error.message : String(error)),
-      stack: privacy.sanitizeValue(error && error.stack ? error.stack : '')
+      stack: privacy.sanitizeValue(error && error.stack ? error.stack : ''),
+      inFrame: isInFrame()
     };
   }
 
@@ -77,6 +117,11 @@
   });
 
   document.addEventListener('visibilitychange', function () {
-    sendEvent({ type: 'visibility', url: window.location.href, visible: document.visibilityState === 'visible' });
+    sendEvent({
+      type: 'visibility',
+      url: window.location.href,
+      visible: document.visibilityState === 'visible',
+      inFrame: isInFrame()
+    });
   });
 })();
