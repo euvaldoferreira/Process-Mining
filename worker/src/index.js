@@ -4,6 +4,7 @@ const MAX_STRING_LENGTH = 500;
 const MAX_URL_LENGTH = 2000;
 const ALLOWED_TYPES = new Set(['input', 'click', 'error', 'visibility']);
 const UUID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const RELEASE_FILENAME_PATTERN = /^[\w.-]+\.xpi$/;
 
 function jsonResponse(body, status, corsHeaders) {
   return new Response(JSON.stringify(body), {
@@ -67,16 +68,51 @@ function validateEvent(event) {
   }
 }
 
+async function handleUpdateManifest(env, corsHeaders) {
+  const object = await env.RELEASES_BUCKET.get('updates.json');
+  if (!object) {
+    return new Response('Not found', { status: 404, headers: corsHeaders });
+  }
+  return new Response(object.body, {
+    status: 200,
+    headers: { ...corsHeaders, 'content-type': 'application/json' }
+  });
+}
+
+async function handleReleaseFile(env, filename, corsHeaders) {
+  if (!RELEASE_FILENAME_PATTERN.test(filename)) {
+    return new Response('Not found', { status: 404, headers: corsHeaders });
+  }
+  const object = await env.RELEASES_BUCKET.get(`releases/${filename}`);
+  if (!object) {
+    return new Response('Not found', { status: 404, headers: corsHeaders });
+  }
+  return new Response(object.body, {
+    status: 200,
+    headers: { ...corsHeaders, 'content-type': 'application/x-xpinstall' }
+  });
+}
+
 export default {
   async fetch(request, env) {
     const corsHeaders = {
       'Access-Control-Allow-Origin': '*',
-      'Access-Control-Allow-Methods': 'POST, OPTIONS',
+      'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
       'Access-Control-Allow-Headers': 'content-type, x-api-key, x-client-id'
     };
 
     if (request.method === 'OPTIONS') {
       return new Response(null, { status: 204, headers: corsHeaders });
+    }
+
+    const url = new URL(request.url);
+
+    if (request.method === 'GET' && url.pathname === '/updates.json') {
+      return handleUpdateManifest(env, corsHeaders);
+    }
+
+    if (request.method === 'GET' && url.pathname.startsWith('/releases/')) {
+      return handleReleaseFile(env, url.pathname.slice('/releases/'.length), corsHeaders);
     }
 
     if (request.method !== 'POST') {

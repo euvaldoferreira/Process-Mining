@@ -1,0 +1,13 @@
+{
+  "addons": {
+    "process-mining-collector@example.com": {
+      "updates": [
+        {
+          "version": "0.1.0",
+          "update_link": "https://process-mining.liseu.workers.dev/releases/process-mining-collector-0.1.0.xpi",
+          "update_hash": "sha256:PREENCHA_COM_O_HASH_DO_XPI_ASSINADO"
+        }
+      ]
+    }
+  }
+}

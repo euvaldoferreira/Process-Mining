@@ -25,6 +25,23 @@ npx wrangler secret put API_KEY
 
 Depois, cole o mesmo valor no campo "Chave de API" do popup da extensão. Se o secret `API_KEY` não for definido, essa checagem fica desativada (mas a validação de schema e o rate limit continuam ativos).
 
+## Distribuição self-hosted da extensão (Firefox)
+
+Como a extensão é instalada fora da AMO (via política interna, não pela loja pública), o Firefox precisa de um `update_url` próprio para checar novas versões — `browser_specific_settings.gecko.update_url` no `manifest.json` aponta para `https://process-mining.liseu.workers.dev/updates.json`, servido pelo próprio worker a partir do bucket R2 `extension-releases` (binding `RELEASES_BUCKET`).
+
+A cada nova versão:
+1. Suba o pacote como **submissão não listada (self-distribution)** na AMO — a Mozilla ainda precisa assinar o `.xpi`, mesmo fora da loja pública.
+2. Baixe o `.xpi` assinado e calcule o hash: `shasum -a 256 process-mining-collector-X.Y.Z.xpi`.
+3. Publique o arquivo e o manifesto de atualização no R2:
+   ```bash
+   cd worker
+   npx wrangler r2 object put extension-releases/releases/process-mining-collector-X.Y.Z.xpi --file process-mining-collector-X.Y.Z.xpi --remote
+   npx wrangler r2 object put extension-releases/updates.json --file updates.json --remote
+   ```
+4. `updates.json` segue o formato em [worker/releases/updates.example.json](worker/releases/updates.example.json), com `version`, `update_link` (apontando para `/releases/<arquivo>.xpi`) e `update_hash` (`sha256:<hash calculado>`).
+
+Publicar um novo `updates.json` no R2 não exige reimplantar o worker — as rotas `GET /updates.json` e `GET /releases/<arquivo>` já servem o conteúdo atual do bucket.
+
 ## Fluxo recomendado
 1. Trabalhe em branches de desenvolvimento, como `develop`.
 2. Valide com `npm test`.

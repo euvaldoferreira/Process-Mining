@@ -9,6 +9,10 @@ mode = "smart"
 binding = "LOGS_BUCKET"
 bucket_name = "logs"
 
+[[r2_buckets]]
+binding = "RELEASES_BUCKET"
+bucket_name = "extension-releases"
+
 [[ratelimits]]
 name = "RATE_LIMITER"
 namespace_id = "1001"
@@ -23,6 +27,10 @@ name = "process-mining-worker-preview"
 [[env.preview.r2_buckets]]
 binding = "LOGS_BUCKET"
 bucket_name = "logs-preview"
+
+[[env.preview.r2_buckets]]
+binding = "RELEASES_BUCKET"
+bucket_name = "extension-releases-preview"
 
 [[env.preview.ratelimits]]
 name = "RATE_LIMITER"
