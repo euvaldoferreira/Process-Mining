@@ -1,10 +1,12 @@
-(function (root, factory) {
+(function (factory) {
   var api = factory();
   if (typeof module !== 'undefined' && module.exports) {
     module.exports = api;
   }
-  root.ProcessMiningUtils = api;
-})(typeof globalThis !== 'undefined' ? globalThis : this, function () {
+  if (typeof window !== 'undefined') {
+    window.ProcessMiningUtils = api;
+  }
+})(function () {
   var SENSITIVE_PATTERNS = [
     'password', 'passwd', 'pass', 'token', 'secret', 'authorization', 'cookie', 'card', 'cvv',
     'ssn', 'cpf', 'cnpj', 'email', 'username', 'user', 'login', 'senha'
